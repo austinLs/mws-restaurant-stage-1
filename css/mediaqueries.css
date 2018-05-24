@@ -1,0 +1,22 @@
+
+@media screen and (max-width: 430px){
+	
+	#breadcrumb {
+		position:relative;
+		width:calc(100%-10px);
+		top:0px;
+	}
+}
+
+@media screen and (min-width: 1300px){
+	
+	.inside #map-container {
+	  height: 87%;
+	  position: fixed;
+	  width: 50%;
+	  }
+	  
+	#restaurant-container, #reviews-container {
+	  width: calc(50% - 60px);
+	}
+}
