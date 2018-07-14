@@ -16,6 +16,13 @@ class DBHelper {
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
+   fetch('http://localhost:1337/restaurants')
+    .then(function(response){
+      return response.json()})
+    .then(function(jsonresponse){
+      callback(null, jsonresponse)});
+
+    /** XHR
     let xhr = new XMLHttpRequest();
     xhr.open('GET', DBHelper.DATABASE_URL);
     xhr.onload = () => {
@@ -28,7 +35,8 @@ class DBHelper {
         callback(error, null);
       }
     };
-    xhr.send();
+    xhr.send();*/
+
   }
 
   /**
@@ -150,29 +158,37 @@ class DBHelper {
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant) {
-    return (`/img/${restaurant.photograph}`);
+    return (`/img/${restaurant.id}.jpg`);
   }
-  
+
   /**
    * Restaurant alt-text for image.
    */
    static altTextForRestaurant(restaurant){
 	  const altText = restaurant.alt_text || 'Picture of restaurant'
 	  return (altText);
-   }  
+   }
 
   /**
    * Map marker for a restaurant.
    */
-  static mapMarkerForRestaurant(restaurant, map) {
-    const marker = new google.maps.Marker({
+   static mapMarkerForRestaurant(restaurant, map){
+     const marker = new L.marker([restaurant.latlng.lat, restaurant.latlng.lng],
+       {title: restaurant.name,
+       alt: restaurant.name,
+       url: DBHelper.urlForRestaurant(restaurant)
+    })
+    marker.addTo(newMap);
+    return marker;
+   }
+   /**
+   const marker = new google.maps.Marker({
       position: restaurant.latlng,
       title: restaurant.name,
       url: DBHelper.urlForRestaurant(restaurant),
       map: map,
       animation: google.maps.Animation.DROP}
     );
-    return marker;
-  }
+    return marker;*/
 
 }

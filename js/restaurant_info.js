@@ -1,25 +1,35 @@
 let restaurant;
-var map;
+var newMap;
 
 document.addEventListener('DOMContentLoaded', (event) => {
   document.getElementById('restaurant-name').focus();
+  initMap();
 });
 
 /**
  * Initialize Google map, called from HTML.
  */
-window.initMap = () => {
-  fetchRestaurantFromURL((error, restaurant) => {
-    if (error) { // Got an error!
+ initMap = () => {
+   fetchRestaurantFromURL((error, restaurant) => {
+     if (error){
       console.error(error);
-    } else {
-      self.map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 16,
-        center: restaurant.latlng,
-        scrollwheel: false
-      });
-      fillBreadcrumb();
-      DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);	  
+      }
+      else{
+   self.newMap = L.map('map', {
+     center: [restaurant.latlng.lat, restaurant.latlng.lng],
+     zoom: 16,
+     scrollWheelZoom: false
+   });
+   L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.jpg70?access_token={mapboxToken}',{
+     mapboxToken:'pk.eyJ1IjoiYXVzdGlucyIsImEiOiJjaml6Y25yanYwNW5wM3BxZHMxa29hYXlqIn0.D6qwEN0V9WmBok7flSBpbA',
+     maxZoom: 18,
+     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+     '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, '+
+     'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+     id: 'mapbox.streets'
+   }).addTo(newMap);
+   fillBreadcrumb();
+   DBHelper.mapMarkerForRestaurant(self.restaurant, self.newMap);
     }
   });
 }
@@ -124,9 +134,9 @@ createReviewHTML = (review) => {
   const maindiv = document.createElement('div');
   const li = document.createElement('li');
   const div = document.createElement('div');
-  
+
   div.className = 'review-header';
-  
+
   const name = document.createElement('p');
   name.innerHTML = review.name;
   name.className = 'review-name';

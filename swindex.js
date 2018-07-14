@@ -2,7 +2,7 @@ self.addEventListener('install', function(event) {
   console.log('Service Worker installing.');
   
 	event.waitUntil(
-		caches.open('restaurant-cache').then(function(cache) {
+		caches.open('restaurant-cache-v2').then(function(cache) {
 		return cache.addAll([
 			'/',
 			'swindex.js',
