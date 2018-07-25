@@ -11,16 +11,33 @@ class DBHelper {
     const port = 8000 // Change this to your server port
     return `http://localhost:${port}/data/restaurants.json`;
   }
+  static dbOpen(){
+    return idb.open('restDb', 1, function(upgradeDb){
+        let restaurantDb = upgradeDb.createObjectStore('restDbs');
+      });
+  }
 
   /**
    * Fetch all restaurants.
    */
-  static fetchRestaurants(callback) {
-   fetch('http://localhost:1337/restaurants')
-    .then(function(response){
-      return response.json()})
-    .then(function(jsonresponse){
-      callback(null, jsonresponse)});
+  static fetchRestaurants(callback){
+
+    DBHelper.dbOpen().then(function(db){
+      db.transaction('restDbs').objectStore('restDbs').getAll()
+      .then((message)=>{
+        if(message[0])
+          callback(null, message[0])
+        else{
+          console.log("no db");
+          fetch('http://localhost:1337/restaurants')
+           .then(function(response){
+             return response.json()})
+           .then(function(jsonresponse){
+               db.transaction('restDbs', 'readwrite').objectStore('restDbs').put(jsonresponse, "json");
+               callback(null, jsonresponse)});
+        }
+      })
+    });
 
     /** XHR
     let xhr = new XMLHttpRequest();
