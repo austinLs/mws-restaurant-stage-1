@@ -39,10 +39,15 @@
     <!-- End map -->
     <!-- Beginning restaurant -->
     <section id="restaurant-container">
-      <h3 id="restaurant-name" tabindex=-1></h3>
+      <div id="update-notification"></div>
+      <div id="title-section">
+        <h3 id="restaurant-name" tabindex=-1></h3>
+        <button id="favorite-button">&#x2605;</button>
+      </div>
       <img id="restaurant-img">
       <p id="restaurant-cuisine"></p>
       <p id="restaurant-address"></p>
+      <br>
       <table id="restaurant-hours"></table>
     </section>
     <!-- end restaurant -->
@@ -50,6 +55,20 @@
     <section id="reviews-container">
       <ul id="reviews-list"></ul>
     </section>
+
+    <div id="new-review-container-div">
+      <section id="new-review-container">
+        <h3> New Review </h3>
+        <div id="review-form">
+          <div id="radio-buttons" role="radiogroup"></div>
+          Enter Name: <input id="name-comment" type="text" name="name">
+          <br>
+          <p> Enter Comments: </p>
+          <textarea id="text-comments" name="comments" placeholder="Add Comments" rows="10"></textarea>
+          <button onclick="postComment()">Submit</button>
+        </div>
+      </section>
+    </div>
     <!-- End reviews -->
   </main>
   <!-- End main -->

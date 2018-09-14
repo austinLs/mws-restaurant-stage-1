@@ -3,7 +3,7 @@
 
 body,td,th,p{
 	font-family: Arial, Helvetica, sans-serif;
-	font-size: 10pt;
+	font-size: 12pt;
 	color: #333;
 	line-height: 1.5;
 }
@@ -199,7 +199,7 @@ nav h1 a {
   height: 40vh;
   right: 0;
   top: 80px;
-  
+
 }
 .inside #map {
   background-color: #ccc;
@@ -223,7 +223,7 @@ nav h1 a {
   outline: 0;
 }
 #restaurant-img {
-	width: 90%;
+	width: 100%;
 }
 #restaurant-address {
   font-size: 12pt;
@@ -239,16 +239,21 @@ nav h1 a {
   padding: 2px 0;
   text-align: center;
   text-transform: uppercase;
-	width: 90%;
+	width: 100%;
 }
-#restaurant-container, #reviews-container {
+#restaurant-container, #reviews-container, #new-review-container-div {
   border-bottom: 1px solid #d9d9d9;
   border-top: 1px solid #fff;
   padding: 40px 40px 30px;
 }
-#reviews-container {
-  padding: 30px 40px 80px;
+#new-review-container-div {
+  padding: 30px 40px 100px;
 }
+
+#new-review-container{
+	padding: 20px;
+}
+
 #reviews-container h2 {
   color: #f58500;
   font-size: 24pt;
@@ -269,7 +274,7 @@ nav h1 a {
   overflow: hidden;
   padding: 10px 20px 20px;
   position: relative;
-  width: 85%;
+  width: 95%;
   border-radius: 0 0 20px 0;
 }
 #reviews-list li p {
@@ -279,7 +284,7 @@ nav h1 a {
 
 .review-header {
 	background-color: #333;
-	width:85%;
+	width:95%;
 	padding: 0 20px;
 	border: 2px solid #f3f3f3;
 	border-bottom: 0;
@@ -310,7 +315,86 @@ nav h1 a {
 	font-size: 16px;
 	border-radius: 5px;
 }
+#title-section{
+	display:flex;
+	justify-content: space-between;
+}
+.favorite-true, .favorite-false{
+	background: none;
+	font-size: 48px;
+	height: 48px;
+	width: 48px;
+	vertical-align: middle;
+	line-height: 1em;
+	padding: 0px;
+	border: none;
+	float: right;
+}
 
-#restaurant-hours td {
-  color: #666;
+.favorite-true{
+	color:orange;
+}
+
+.favorite-false{
+	color: #000;
+}
+
+#new-review-container{
+	background-color: white;
+}
+
+input[type=radio]{
+	visibility: hidden;
+	position: absolute;
+}
+
+input[type=radio]:hover + span{
+	color:#910000;
+}
+
+input[type=radio]:checked + span{
+	color:orange;
+}
+
+label{
+	user-select: none;
+}
+
+form{
+	padding: 15px 0;
+}
+
+#radio-buttons {
+		margin: -15px 0;
+		padding: 0;
+  	float: right;
+		font-size: 36px;
+}
+
+#restaurant-hours {
+  width: 500px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#update-notification{
+	background-color: green;
+	width:450px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#updatebar-text{
+	color: orange;
+	font-size: 14px;
+	text-align: center;
+}
+
+#text-comments{
+	width:100%;
+	resize: none;
+}
+
+body hr{
+	width: 90%;
 }

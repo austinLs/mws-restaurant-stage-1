@@ -3,18 +3,12 @@
  */
 class DBHelper {
 
-  /**
-   * Database URL.
-   * Change this to restaurants.json file location on your server.
-   */
-  static get DATABASE_URL() {
-    const port = 8000 // Change this to your server port
-    return `http://localhost:${port}/data/restaurants.json`;
-  }
   static dbOpen(){
     return idb.open('restDb', 1, function(upgradeDb){
-        let restaurantDb = upgradeDb.createObjectStore('restDbs');
-      });
+        let restaurantDb = upgradeDb.createObjectStore('restaurantsDB');
+        let reviewsDB = upgradeDb.createObjectStore('reviewsDB', {keypath: "id"});
+        let offlineDB = upgradeDb.createObjectStore('offlineDB', {keypath : "time"});
+    });
   }
 
   /**
@@ -23,7 +17,7 @@ class DBHelper {
   static fetchRestaurants(callback){
 
     DBHelper.dbOpen().then(function(db){
-      db.transaction('restDbs').objectStore('restDbs').getAll()
+      db.transaction('restaurantsDB').objectStore('restaurantsDB').getAll()
       .then((message)=>{
         if(message[0])
           callback(null, message[0])
@@ -33,13 +27,14 @@ class DBHelper {
            .then(function(response){
              return response.json()})
            .then(function(jsonresponse){
-               db.transaction('restDbs', 'readwrite').objectStore('restDbs').put(jsonresponse, "json");
+               db.transaction('restaurantsDB', 'readwrite').objectStore('restaurantsDB').put(jsonresponse, "json");
                callback(null, jsonresponse)});
         }
       })
     });
+  }
 
-    /** XHR
+    /** XHR, OLD, reference
     let xhr = new XMLHttpRequest();
     xhr.open('GET', DBHelper.DATABASE_URL);
     xhr.onload = () => {
@@ -54,6 +49,146 @@ class DBHelper {
     };
     xhr.send();*/
 
+  static fetchReview(id, callback){
+    DBHelper.dbOpen().then(function(db){
+      db.transaction('reviewsDB').objectStore('reviewsDB').get(id)
+      .then(message =>{
+        if(message)
+          callback(null, message)
+        else{
+          fetch('http://localhost:1337/reviews/?restaurant_id='+id)
+           .then(function(response){
+              return response.json()})
+           .then(function(jsonresponse){
+             db.transaction('reviewsDB', 'readwrite').objectStore('reviewsDB').put(jsonresponse, id);
+             callback(null, jsonresponse)});
+           }
+         })
+       });
+       DBHelper.fetchOfflineCache();
+     }
+
+  /**
+  * Update Database with favorite status.
+  */
+  static favoriteRestaurant(restid, favoriteBool){
+    // Shift ids to match DB location
+    let shiftedrestid = restid - 1;
+    DBHelper.dbOpen().then(function(db){
+      db.transaction('restaurantsDB', 'readwrite').objectStore('restaurantsDB').openCursor()
+      .then(cursor =>{
+        // Select record with matching ID
+        var updateFavorite = cursor.value[shiftedrestid];
+        // Update favorite status
+        updateFavorite.is_favorite = favoriteBool;
+        // Update record
+        cursor.update(cursor.value)
+        })
+      });
+      //Send to server
+      DBHelper.updateServerReview(null, "Put", favoriteBool, restid)
+  }
+
+  /**
+  * Update Database with restaurant reviews.
+  */
+  static reviewRestaurant(body, id){
+    DBHelper.dbOpen().then(function(db){
+      db.transaction('reviewsDB', 'readwrite').objectStore('reviewsDB').openCursor()
+      .then(cursor =>{
+        // Check if cursor is at correct ID
+        if(cursor.key != id){
+          cursor.continue(id)
+          .then(cursor =>{
+            // Check number of reviews
+            let reviewNumber = cursor.value.length
+            // Get all records
+            var newReview = cursor.value
+            // Add new review at last spot
+            newReview[reviewNumber] = body;
+            // Update record
+            cursor.update(newReview)
+          })
+        }
+        // If first record cursor is at corret ID
+        else{
+          //Same as above
+          let reviewNumber = cursor.value.length
+          var newReview = cursor.value
+          newReview[reviewNumber] = body;
+          cursor.update(newReview)
+        }
+      })
+    });
+    //Send to server
+    DBHelper.updateServerReview(null, "Post", body);
+    //Attempt to submit offline cache
+    DBHelper.fetchOfflineCache();
+    //Scroll page to top to prevent double submit and populate new review
+    document.body.scrollTop = document.documentElement.scrollTop = 0;
+  }
+
+  /**
+  * Update server with restaurant reviews and favorites.
+  */
+  static updateServerReview(time, type, data, id){
+
+    let fetchData;
+    let URL;
+    let postTime = time || Date.now();
+
+    if (type == "Post"){
+      URL = 'http://localhost:1337/reviews/';
+      fetchData = {method: "POST", body: JSON.stringify(data)};
+    }
+    else if(type == "Put"){
+      URL = 'http://localhost:1337/restaurants/'+ id +'/?is_favorite='+ data
+      fetchData = {method: "PUT"}
+    }
+
+    fetch(URL, fetchData)
+    .then(response => {
+      if (response.status >= 200 && response.status < 300){
+        document.getElementById("updatebar-text").innerHTML = "Updated!"
+        return;
+      }
+      else{
+        document.getElementById("updatebar-text").innerHTML = "Update saved till online"
+        DBHelper.offlineCache(postTime, type, data, id)
+      }
+    })
+    .catch(error => {
+      console.error(error)
+      document.getElementById("updatebar-text").innerHTML = "Update saved till online"
+      DBHelper.offlineCache(postTime, type, data, id)
+    });
+  }
+
+  static offlineCache(time, type, data, id){
+      DBHelper.dbOpen().then(function(db){
+        db.transaction('offlineDB', 'readwrite').objectStore('offlineDB').put({time, type, data, id}, time);
+      })
+  }
+
+  static fetchOfflineCache(){
+    DBHelper.dbOpen().then(function(db){
+      db.transaction('offlineDB', 'readwrite').objectStore('offlineDB').openCursor()
+      .then(cursor =>{
+        if(cursor){
+          let cacheItem = cursor.value
+          let type = cacheItem.type;
+          let data = cacheItem.data;
+          let time = cacheItem.time;
+          if(cacheItem.id)
+            var id = cacheItem.id;
+
+          DBHelper.updateServerReview(time, type, data, id)
+
+          cursor.delete()
+          .then(DBHelper.fetchOfflineCache);
+        }
+      })
+    })
   }
 
   /**
@@ -198,14 +333,7 @@ class DBHelper {
     marker.addTo(newMap);
     return marker;
    }
-   /**
-   const marker = new google.maps.Marker({
-      position: restaurant.latlng,
-      title: restaurant.name,
-      url: DBHelper.urlForRestaurant(restaurant),
-      map: map,
-      animation: google.maps.Animation.DROP}
-    );
-    return marker;*/
+
+
 
 }

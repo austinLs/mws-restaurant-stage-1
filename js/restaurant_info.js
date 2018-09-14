@@ -63,8 +63,23 @@ fetchRestaurantFromURL = (callback) => {
  * Create restaurant HTML and add it to the webpage
  */
 fillRestaurantHTML = (restaurant = self.restaurant) => {
+  const updateBar = document.getElementById('update-notification');
+  const updateBarText = document.createElement('p');
+  updateBarText.id = "updatebar-text";
+  updateBar.appendChild(updateBarText)
+
   const name = document.getElementById('restaurant-name');
   name.innerHTML = restaurant.name;
+
+  const favoriteButton = document.getElementById('favorite-button');
+  favoriteButton.addEventListener("click", favoriteClick, false);
+  let favorite = restaurant.is_favorite;
+  if (favorite){
+    favoriteButton.className = "favorite-true";
+  }
+  else{
+    favoriteButton.className = "favorite-false"
+  }
 
   const address = document.getElementById('restaurant-address');
   address.innerHTML = restaurant.address;
@@ -82,7 +97,12 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
     fillRestaurantHoursHTML();
   }
   // fill reviews
-  fillReviewsHTML();
+  DBHelper.fetchReview(restaurant.id, (error, review) => {
+    self.review = review;
+    fillReviewsHTML();
+  })
+  // new review
+  newReviewFormHTML()
 }
 
 /**
@@ -108,7 +128,7 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 /**
  * Create all reviews HTML and add them to the webpage.
  */
-fillReviewsHTML = (reviews = self.restaurant.reviews) => {
+fillReviewsHTML = (reviews = self.review) => {
   const container = document.getElementById('reviews-container');
   const title = document.createElement('h3');
   title.innerHTML = 'Reviews';
@@ -143,7 +163,8 @@ createReviewHTML = (review) => {
   div.appendChild(name);
 
   const date = document.createElement('p');
-  date.innerHTML = review.date;
+  let dateConverted = new Date(review.updatedAt)
+  date.innerHTML = dateConverted.toDateString();
   date.className = 'review-date';
   div.appendChild(date);
 
@@ -159,6 +180,87 @@ createReviewHTML = (review) => {
   maindiv.appendChild(div);
   maindiv.appendChild(li);
   return maindiv;
+}
+
+/**
+ * New review form element
+ */
+
+ newReviewFormHTML = (restaurantid = self.restaurant.id) => {
+   // Add ID and hide element
+   const formElement = document.getElementById('review-form');
+   const formID = document.createElement('input');
+   formID.type = "hidden";
+   formID.name = "restaurant_id";
+   formID.id = "restaurant-id";
+   formID.value = restaurantid;
+   formElement.appendChild(formID);
+
+   //Add radio-button stars to allow raiting
+   const radioDiv = document.getElementById('radio-buttons');
+   for (var i=1; i<=5; i++){
+
+     const labelRating = document.createElement('label');
+     const formRating = document.createElement('input');
+     formRating.type = "radio";
+     formRating.name = "rating";
+     formRating.value = i;
+     formRating.id = "input" + i;
+     const starText = document.createElement('span');
+     starText.innerHTML = "&#x2605;";
+     starText.tabIndex = 0;
+     starText.associatedInput = "input" + i;
+     starText.addEventListener('keydown', (e)=>
+       {
+         //Detect input from keyboard only users
+         let target = e.target;
+         if (target=== document.activeElement && event.keyCode == 13)
+          {document.getElementById(target.associatedInput).checked = true}
+       })
+
+     labelRating.appendChild(formRating);
+     labelRating.appendChild(starText);
+     radioDiv.appendChild(labelRating);
+   }
+ }
+
+ /**
+ * Handle new Comments
+*/
+postComment = () => {
+  let id = Number(document.getElementById('restaurant-id').value);
+  let name = document.getElementById('name-comment').value;
+  let comment = document.getElementById('text-comments').value;
+  let rating;
+  for (var i=1; i<=5; i++){
+    if(document.getElementById('input'+i).checked == true){
+      rating = i;
+    }
+  }
+  let body = {
+    id: Date.now(),
+    restaurant_id: id,
+    name: name,
+    comments: comment,
+    rating: rating || 3,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  }
+  DBHelper.reviewRestaurant(body, id);
+}
+
+favoriteClick = () =>{
+  const favoriteButton = document.getElementById('favorite-button');
+  let favoriteBool = false;
+  if(favoriteButton.className == "favorite-false"){
+    favoriteButton.className = "favorite-true";
+    favoriteBool = true;
+  }
+  else {
+    favoriteButton.className = "favorite-false";
+  }
+  let restaurantid = document.getElementById('restaurant-id').value;
+  DBHelper.favoriteRestaurant(restaurantid, favoriteBool)
 }
 
 /**

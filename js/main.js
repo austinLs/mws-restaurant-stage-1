@@ -184,9 +184,35 @@ createRestaurantHTML = (restaurant) => {
   const more = document.createElement('a');
   more.innerHTML = 'View Details';
   more.href = DBHelper.urlForRestaurant(restaurant);
-  li.append(more)
+  li.append(more);
+
+  const favorite = document.createElement('button');
+  favorite.innerHTML = '&#x2605;';
+  favorite.class = "index-favorite-button";
+  favorite.id = restaurant.id;
+  favorite.addEventListener("click", function(){favoriteClick(favorite)}, false);
+  if (restaurant.is_favorite){
+    favorite.className = "favorite-true";
+  }
+  else{
+    favorite.className = "favorite-false"
+  }
+  li.append(favorite);
 
   return li
+}
+
+favoriteClick = (favorite) =>{
+  let favoriteBool = false;
+  if(favorite.className == "favorite-false"){
+    favorite.className = "favorite-true";
+    favoriteBool = true;
+  }
+  else {
+    favorite.className = "favorite-false";
+  }
+  let restaurantid = favorite.id
+  DBHelper.favoriteRestaurant(restaurantid, favoriteBool)
 }
 
 /**

@@ -1,6 +1,6 @@
 
 @media screen and (max-width: 513px){
-	
+
 	#breadcrumb {
 		position:relative;
 		width:calc(100%-10px);
@@ -8,42 +8,51 @@
 		font-size: 20px;
 		padding: 0 10px 5px;
 	}
-	
+
 	#breadcrumb li {
 		font-size: 17px;
 		padding: 0px;
 	}
-	
+
 	nav h1 {
 		padding: 5px;
 	}
-	
+
 	nav h1 a {
 		font-size: 25px ;
+	}
+
+	#radio-buttons{
+		float: none;
+		padding: 0 0 20px 0;
+	}
+
+	#update-notification{
+		width:200px;
 	}
 }
 
 @media screen and (min-width:730px){
-	
+
 	nav h1 {
 		padding: 9px;
 	}
-	
+
 	nav h1 a {
 		font-size: 37px ;
 	}
-	
+
 }
 
 @media screen and (min-width: 1300px){
-	
+
 	.inside #map-container {
 	  height: 87%;
 	  position: fixed;
 	  width: 50%;
 	  }
-	  
-	#restaurant-container, #reviews-container {
-	  width: calc(50% - 60px);
+
+	#restaurant-container, #reviews-container, #new-review-container {
+	  width: calc(50% - 90px);
 	}
 }
